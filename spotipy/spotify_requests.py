@@ -18,8 +18,9 @@ USER_ID = os.getenv('SPOTIFY_USER_ID')
 
 
 # Request Access Tokens
-def request_tokens():
-    code = request.args.get('code')
+def request_tokens(code):
+    if code == '':
+        raise Exception('No authorization code found.')
     payload = {
         'grant_type': 'authorization_code',
         'code': code,

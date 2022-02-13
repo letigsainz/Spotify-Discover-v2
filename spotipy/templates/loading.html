@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block head %} <title>Spotipy</title> {% endblock %} 
+
+{% block body %}
+    <div style="margin-top: 10%;" class="ui text container">
+        <h1 class="ui center aligned icon blue inverted huge header">
+            <i class="music icon"></i>
+            <div class="content">
+                Discover New Music on Spotify
+                <div class="ui hidden divider"></div>
+              <h4 class="ui sub header">Create a playlist of new music releases by your favorite artists</h4>
+            </div>
+        </h1>
+        <div class="ui hidden section divider"></div>
+        <div id="wrap" class="ui center aligned basic segment">
+            <a id="loader" class="ui green big button" href="/create_playlist/{{ code }}" onclick="load()">Create playlist!</a>
+        </div> 
+        
+    </div>
+
+    
+{% endblock %}

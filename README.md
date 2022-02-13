@@ -1,9 +1,15 @@
-# Spotify Discover (Full Stack)
+# Spotify Discover (Full Stack version)
 
 ## About The Project
 This flask app is meant to run locally every month and allow the user to discover new music.
 
 It uses the Spotify Web API to access your followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
+
+## Screenshots
+![Start Screen](/spotipy/screenshots/start.png)
+
+![Loading Screen](/spotipy/screenshots/loading.png)
+
 
 ## Getting Started
 

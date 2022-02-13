@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, request
 from dotenv import load_dotenv
 import spotify_requests as r
 import helpers as hp
@@ -32,11 +32,20 @@ def request_auth():
 
 
 """
-Back to app while data is fetched.
+Back to app after user signs in. User can now create playlist.
 """
 @app.route('/callback')
-def fetch_data():
-    tokens = r.request_tokens()
+def load_page():
+    code = request.args.get('code')
+    return render_template('loading.html', code=code)
+    
+
+"""
+Fetch data for new playlist.
+"""
+@app.route('/create_playlist/<code>')
+def fetch_data(code):
+    tokens = r.request_tokens(code)
     artist_ids = r.get_artists(tokens)
     album_ids = r.get_albums(tokens, artist_ids)
     track_uris = r.get_tracks(tokens, album_ids)

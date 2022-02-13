@@ -1,6 +1,5 @@
 .env
 /env
-/me
 *.pyc
 *.json
 .vscode/
