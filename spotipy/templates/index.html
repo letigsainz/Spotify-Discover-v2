@@ -14,9 +14,8 @@
         </h1>
         <div class="ui hidden section divider"></div>
         <div class="ui center aligned basic segment">
-            <a id="loader" class="ui green big button" href="/get_auth" onclick="load()">Sign in!</a>
+            <a id="loader" class="ui green big button" href="{{ url_for('request_auth') }}" onclick="load()">Sign in!</a>
         </div> 
     </div>
-
     
 {% endblock %}
