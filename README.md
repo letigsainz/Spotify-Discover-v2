@@ -59,3 +59,15 @@ export FLASK_APP=spotipy/app.py
 
 python -m flask run
 ```
+
+## Notes
+
+Why would you want to build URLs using the URL reversing function `url_for()` instead of hard-coding them into your templates?
+
+1. Reversing is often more descriptive than hard-coding the URLs.
+2. You can change your URLs in one go instead of needing to remember to manually change hard-coded URLs.
+3. URL building handles escaping of special characters transparently.
+4. The generated paths are always absolute, avoiding unexpected behavior of relative paths in browsers.
+5. If your application is placed outside the URL root, for example, in /myapplication instead of /, url_for() properly handles that for you.
+
+For example, in `loading.html` we can set the `href="/create_playlist/{{ code }}"` or instead, use `url_for()` like so, `href="{{ url_for('fetch_data', code=code) }}"`.
