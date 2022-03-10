@@ -1,9 +1,8 @@
 from cachetools import Cache, TTLCache
 
 
-"""Overriding TTL cache to allow for setting a per-item TTL"""
 class TokenCache(TTLCache):
-
+    """Overriding TTL cache to allow for setting a per-item TTL"""
     def __init__(self):
         self.cache = super().__init__(maxsize=128, ttl=8600)
 
@@ -16,6 +15,6 @@ class TokenCache(TTLCache):
 
     def save_token(self, key, value, ttl):
         return self.__setitem__(key, value, ttl)
-    
+
     def get_token(self, key):
         return self.get(key)
