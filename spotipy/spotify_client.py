@@ -181,22 +181,21 @@ class SpotifyClient:
     """Add new music releases to our newly created playlist"""
     def add_to_playlist(self, track_uris):
 
-        headers = self.set_request_headers()
         playlist_id = self.create_playlist()
         number_of_tracks = len(track_uris)  # Spotify API limit - max 100 tracks per req.
 
         if number_of_tracks > 200:
             three_split = np.array_split(track_uris, 3)
             for lst in three_split:
-                hp.add_tracks(headers, playlist_id, list(lst))
+                hp.add_tracks(self.set_request_headers(), playlist_id, list(lst))
 
         elif number_of_tracks > 100:
             two_split = np.array_split(track_uris, 2)
             for lst in two_split:
-                hp.add_tracks(headers, playlist_id, list(lst))
+                hp.add_tracks(self.set_request_headers(), playlist_id, list(lst))
 
         else:
-            hp.add_tracks(headers, playlist_id, track_uris)
+            hp.add_tracks(self.set_request_headers(), playlist_id, track_uris)
 
         print('Added tracks to playlist!')
         hp.shutdown_server(request.environ)

@@ -22,5 +22,4 @@ def add_tracks(headers, playlist_id, tracks_list):
     uri = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
     headers['Content-Type'] = 'application/json'
     payload = {'uris': tracks_list}
-    response = requests.post(uri, headers=headers, data=json.dumps(payload))
-    return response
+    requests.post(uri, headers=headers, data=json.dumps(payload))
