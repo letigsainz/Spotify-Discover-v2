@@ -21,7 +21,8 @@ Make sure you have Python3 installed.
 
 Clone the repository and step inside.
 
-Set up a .env file in the project directory that looks like this:
+Set up a `.env` file in the project's root directory that looks like this:
+
 ```
 SPOTIFY_CLIENT_ID= '<your_client_id>'
 SPOTIFY_CLIENT_SECRET= '<your_client_secret>'
@@ -29,7 +30,7 @@ SPOTIFY_REDIRECT_URI= 'http://127.0.0.1:5000/callback'
 SPOTIFY_USER_ID= '<your_spotify_user_id>'
 SECRET_KEY= '<your_secret_key>'
 ```
-The SECRET_KEY is used by flask to keep data safe (encryption). You must set the secret key in order to use session in flask.
+The SECRET_KEY is used by flask to keep data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
 
 Create a secret key using the following command. Copy the resulting string into the SECRET_KEY variable in your .env file.
 ```
