@@ -18,8 +18,8 @@ class SpotifyClient:
         self.redirect_uri = redirect_uri
 
 
-    """Request access and refresh tokens"""
     def request_api_tokens(self, code):
+        """Request access and refresh tokens"""
         if code == '':
             raise Exception('No authorization code found.')
         payload = {
@@ -43,8 +43,8 @@ class SpotifyClient:
         return content
 
 
-    """Retrieve the token from cache"""
     def get_token_from_cache(self):
+        """Retrieve the token from cache"""
         cached_token = self.CACHE.get_token('access_token')
 
         if not cached_token:
@@ -60,20 +60,20 @@ class SpotifyClient:
         return cached_token
 
 
-    """Refresh access token"""
     def refresh_tokens(self, refresh_token):
+        """Refresh access token"""
         pass
 
 
-    """Prep request headers"""
     def set_request_headers(self):
+        """Prep request headers with access token"""
         access_token = self.get_token_from_cache()
         headers = {'Authorization': f'Bearer {access_token}'}
         return headers
 
 
-    """Get current user's followed artists"""
     def get_artists(self):
+        """Get current user's followed artists"""
         headers = self.set_request_headers()
         response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=headers)
         content = response.json()
@@ -100,8 +100,8 @@ class SpotifyClient:
         return artist_ids
 
 
-    """Get all albums by followed artists (albums, singles)"""
     def get_albums(self, artist_ids):
+        """Get all albums by followed artists (albums, singles)"""
         headers = self.set_request_headers()
         album_ids = []
         album_names = {}  # used to check for duplicates with different id's * issue with some albums
@@ -141,8 +141,8 @@ class SpotifyClient:
         return album_ids
 
 
-    """Get each individual album's track uri's"""
     def get_tracks(self, album_ids):
+        """Get each individual album's track uri's"""
         track_uris = []
         headers = self.set_request_headers()
 
@@ -163,9 +163,8 @@ class SpotifyClient:
         return track_uris
 
 
-    """Create a new playlist in user's account"""
     def create_playlist(self, user_id=os.getenv('SPOTIFY_USER_ID')):
-
+        """Create a new playlist in user's account"""
         current_date = (date.today()).strftime('%m-%d-%Y')
         playlist_name = f'New Monthly Releases - {current_date}'
 
@@ -174,16 +173,15 @@ class SpotifyClient:
         response = requests.post(uri, headers=self.set_request_headers(), data=json.dumps(payload))
         content = response.json()
 
-        session['playlist_id'] = content['id']  # store our new playlist's id
+        session['playlist_id'] = content['id']  # store new playlist's id
         session['playlist_url'] = content['external_urls']['spotify']  # store new playlist's url
 
         print(f'{response.status_code} - Created playlist!')
         return session['playlist_id']
 
 
-    """Add new music releases to our newly created playlist"""
     def add_to_playlist(self, track_uris):
-
+        """Add new music releases to our newly created playlist"""
         playlist_id = self.create_playlist()
         number_of_tracks = len(track_uris)  # Spotify API limit - max 100 tracks per req.
 

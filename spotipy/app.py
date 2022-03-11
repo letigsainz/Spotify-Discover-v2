@@ -15,28 +15,22 @@ app.secret_key = os.getenv('SECRET_KEY')
 hp.open_browser()
 
 
-"""
-Home page.
-"""
 @app.route('/')
 def home():
+    """Homepage"""
     return render_template('index.html')
 
 
-"""
-Request user authorization from spotify.
-"""
 @app.route('/get_auth')
 def request_auth():
+    """Request user authorization from spotify."""
     scope = 'user-top-read playlist-modify-public playlist-modify-private user-follow-read'
     return redirect(f'https://accounts.spotify.com/authorize?client_id={CLIENT_ID}&response_type=code&redirect_uri={REDIRECT_URI}&scope={scope}')
 
 
-"""
-Back to app after user signs in. User can now create playlist.
-"""
 @app.route('/callback')
 def load_page():
+    """Back to app after user signs in. User can now create playlist."""
     if request.args.get('error'):
         error_msg = request.args.get('error')
         raise ValueError(error_msg)
@@ -45,11 +39,9 @@ def load_page():
     return render_template('loading.html', code=code)
 
 
-"""
-Fetch data for new playlist.
-"""
 @app.route('/create_playlist/<code>')
 def fetch_data(code):
+    """Fetch data for new playlist."""
     client = SpotifyClient(
         CLIENT_ID,
         CLIENT_SECRET,
