@@ -59,9 +59,11 @@ class SpotifyClient:
 
         return cached_token
 
+
     """Refresh access token"""
     def refresh_tokens(self, refresh_token):
         pass
+
 
     """Prep request headers"""
     def set_request_headers(self):
