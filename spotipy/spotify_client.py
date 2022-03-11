@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, date
 from flask import request, session
-from dotenv import load_dotenv
 from cache import TokenCache
 import helpers as hp
 import numpy as np
@@ -9,19 +8,15 @@ import json
 import os
 
 
-load_dotenv()  # load env variables
-
-# client info
-CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI')  # redirect to after granting user permission
-USER_ID = os.getenv('SPOTIFY_USER_ID')
-
-
 class SpotifyClient:
 
-    def __init__(self):
+
+    def __init__(self, client_id, client_secret, redirect_uri):
         self.CACHE = TokenCache()
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.redirect_uri = redirect_uri
+
 
     """Request access and refresh tokens"""
     def request_api_tokens(self, code):
@@ -30,9 +25,9 @@ class SpotifyClient:
         payload = {
             'grant_type': 'authorization_code',
             'code': code,
-            'redirect_uri': REDIRECT_URI,
-            'client_id': CLIENT_ID,
-            'client_secret': CLIENT_SECRET
+            'redirect_uri': self.redirect_uri,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
         }
         response = requests.post('https://accounts.spotify.com/api/token', data=payload)
 
@@ -46,6 +41,7 @@ class SpotifyClient:
         print('Successfully completed Auth flow!')
 
         return content
+
 
     """Retrieve the token from cache"""
     def get_token_from_cache(self):
@@ -73,6 +69,7 @@ class SpotifyClient:
         headers = {'Authorization': f'Bearer {access_token}'}
         return headers
 
+
     """Get current user's followed artists"""
     def get_artists(self):
         headers = self.set_request_headers()
@@ -99,6 +96,7 @@ class SpotifyClient:
 
         print('Retrieved artist IDs!')
         return artist_ids
+
 
     """Get all albums by followed artists (albums, singles)"""
     def get_albums(self, artist_ids):
@@ -140,6 +138,7 @@ class SpotifyClient:
         print('Retrieved album IDs!')
         return album_ids
 
+
     """Get each individual album's track uri's"""
     def get_tracks(self, album_ids):
         track_uris = []
@@ -161,8 +160,9 @@ class SpotifyClient:
         print('Retrieved tracks!')
         return track_uris
 
+
     """Create a new playlist in user's account"""
-    def create_playlist(self, user_id=USER_ID):
+    def create_playlist(self, user_id=os.getenv('SPOTIFY_USER_ID')):
 
         current_date = (date.today()).strftime('%m-%d-%Y')
         playlist_name = f'New Monthly Releases - {current_date}'
@@ -177,6 +177,7 @@ class SpotifyClient:
 
         print(f'{response.status_code} - Created playlist!')
         return session['playlist_id']
+
 
     """Add new music releases to our newly created playlist"""
     def add_to_playlist(self, track_uris):

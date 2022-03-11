@@ -6,7 +6,9 @@ import os
 
 load_dotenv()
 CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI')
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -48,13 +50,18 @@ Fetch data for new playlist.
 """
 @app.route('/create_playlist/<code>')
 def fetch_data(code):
-    client = SpotifyClient()
-
+    client = SpotifyClient(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        REDIRECT_URI
+    )
     client.request_api_tokens(code)
+
     artist_ids = client.get_artists()
     album_ids = client.get_albums(artist_ids)
     track_uris = client.get_tracks(album_ids)
     playlist_url = client.add_to_playlist(track_uris)
+
     return redirect(playlist_url)
 
 
