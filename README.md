@@ -5,6 +5,8 @@ This flask app is meant to run locally every month and allow the user to discove
 
 It uses the Spotify Web API to access your followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
 
+Note: This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
+
 ## Screenshots
 ![Start Screen](/spotipy/screenshots/start.png)
 

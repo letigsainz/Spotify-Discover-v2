@@ -69,4 +69,4 @@ def fetch_data(code):
 
 
 if __name__ == '__main__':
-    app.run()  # dev mode
+    app.run()  # development mode!
