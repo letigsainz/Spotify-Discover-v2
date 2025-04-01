@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, date
 import logging
 from flask import request, session
-from cache import TokenCache
-import helpers as hp
+from spotipy.cache import TokenCache
+import spotipy.helpers as hp
 import numpy as np
 import requests
 import json
@@ -38,12 +38,16 @@ class SpotifyClient:
             raise AuthenticationError(f'{response.status_code}')
 
         content = response.json()
-        expires_in = content.get('expires_in')
-        self.CACHE.save_token('access_token', content.get('access_token'), expires_in)
-        self.CACHE.save_token('refresh_token', content.get('refresh_token'), 8600)  # save 'forever'
+        self.save_token_to_cache(content.get('access_token'), content.get('refresh_token'), content.get('expires_in'))
         logger.info('Successfully completed auth flow!')
 
         return content
+
+
+    def save_token_to_cache(self, access_token, refresh_token, expires_in):
+        self.CACHE.save_token('access_token', access_token, expires_in)
+        self.CACHE.save_token('refresh_token', refresh_token, 8600)  # save 'forever'
+        logger.info('Saved tokens to cache.')
 
 
     def get_token_from_cache(self):
@@ -117,7 +121,7 @@ class SpotifyClient:
 
             if response.status_code == 401:  # bad or expired token
                 headers = self.set_request_headers()
-                response = requests.get(headers=headers)
+                response = requests.get(uri, headers=headers)
 
             content = response.json()
 
@@ -144,10 +148,10 @@ class SpotifyClient:
     def get_tracks(self, album_ids):
         """Get each individual album's track uri's"""
         track_uris = []
-
+        headers = self.set_request_headers()
         for id in album_ids:
             uri = f'https://api.spotify.com/v1/albums/{id}/tracks'
-            response = requests.get(uri, headers=self.set_request_headers())
+            response = requests.get(uri, headers=headers)
 
             if response.status_code == 401:  # bad or expired token
                 headers = self.set_request_headers()
@@ -187,19 +191,18 @@ class SpotifyClient:
         """Add new music releases to our newly created playlist"""
         playlist_id = self.create_playlist()
         number_of_tracks = len(track_uris)  # Spotify API limit - max 100 tracks per req.
+        headers = self.set_request_headers()
 
         if number_of_tracks > 200:
             three_split = np.array_split(track_uris, 3)
             for lst in three_split:
-                hp.add_tracks(self.set_request_headers(), playlist_id, list(lst))
-
+                hp.add_tracks(headers, playlist_id, list(lst))
         elif number_of_tracks > 100:
             two_split = np.array_split(track_uris, 2)
             for lst in two_split:
-                hp.add_tracks(self.set_request_headers(), playlist_id, list(lst))
-
+                hp.add_tracks(headers, playlist_id, list(lst))
         else:
-            hp.add_tracks(self.set_request_headers(), playlist_id, track_uris)
+            hp.add_tracks(headers, playlist_id, track_uris)
 
         logger.info('Added tracks to playlist!')
         hp.shutdown_server(request.environ)

@@ -1,9 +1,9 @@
 import logging
 from flask import Flask, redirect, render_template, request
-from spotify_client import SpotifyClient
+from spotipy.spotify_client import SpotifyClient
 from spotipy.errors import AuthenticationError
 from dotenv import load_dotenv
-import helpers as hp
+import spotipy.helpers as hp
 import os
 import sys
 
