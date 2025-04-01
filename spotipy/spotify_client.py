@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+import logging
 from flask import request, session
 from cache import TokenCache
 import helpers as hp
@@ -6,6 +7,9 @@ import numpy as np
 import requests
 import json
 import os
+from spotipy.errors import AuthenticationError
+
+logger = logging.getLogger(__name__)
 
 
 class SpotifyClient:
@@ -17,11 +21,10 @@ class SpotifyClient:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
 
-
     def request_api_tokens(self, code):
         """Request access and refresh tokens"""
-        if code == '':
-            raise Exception('No authorization code found.')
+        if code == None:
+            raise AuthenticationError('No authorization code found.')
         payload = {
             'grant_type': 'authorization_code',
             'code': code,
@@ -32,13 +35,13 @@ class SpotifyClient:
         response = requests.post('https://accounts.spotify.com/api/token', data=payload)
 
         if response.status_code != 200:
-            return f'Something went wrong - {response.status_code}'
+            raise AuthenticationError(f'{response.status_code}')
 
         content = response.json()
         expires_in = content.get('expires_in')
         self.CACHE.save_token('access_token', content.get('access_token'), expires_in)
         self.CACHE.save_token('refresh_token', content.get('refresh_token'), 8600)  # save 'forever'
-        print('Successfully completed Auth flow!')
+        logger.info('Successfully completed auth flow!')
 
         return content
 
@@ -51,9 +54,8 @@ class SpotifyClient:
             cached_refresh_token = self.CACHE.get_token('refresh_token')
 
             if not cached_refresh_token:
-                print('No refresh token available. Retrieving new tokens.')
-                new_tokens = self.request_api_tokens()
-                return new_tokens.get('access_token')
+                logger.error('No refresh token available. Logging the user out...')
+                raise AuthenticationError('Refresh token missing.')
 
             return self.refresh_tokens(cached_refresh_token)
 
@@ -74,10 +76,8 @@ class SpotifyClient:
 
     def get_artists(self):
         """Get current user's followed artists"""
-        headers = self.set_request_headers()
-        response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=headers)
+        response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=self.set_request_headers())
         content = response.json()
-
         artist_ids = []
         artists = content['artists']['items']
         for artist in artists:
@@ -96,13 +96,12 @@ class SpotifyClient:
             for artist in content['artists']['items']:
                 artist_ids.append(artist['id'])
 
-        print('Retrieved artist IDs!')
+        logger.info('Retrieved artist IDs!')
         return artist_ids
 
 
     def get_albums(self, artist_ids):
         """Get all albums by followed artists (albums, singles)"""
-        headers = self.set_request_headers()
         album_ids = []
         album_names = {}  # used to check for duplicates with different id's * issue with some albums
 
@@ -113,7 +112,7 @@ class SpotifyClient:
 
         for id in artist_ids:
             uri = f'https://api.spotify.com/v1/artists/{id}/albums?include_groups=album,single&country=US'
-            response = requests.get(uri, headers=headers)
+            response = requests.get(uri, headers=self.set_request_headers())
 
             if response.status_code == 401:  # bad or expired token
                 headers = self.set_request_headers()
@@ -135,20 +134,19 @@ class SpotifyClient:
                             album_names[album_name] = artist_name
                 except ValueError:
                     # there appear to be some older release dates that only contain year (2007) - irrelevant
-                    print(f'Release date found with format: {album["release_date"]}')
+                    logger.info(f'Release date found with format: {album["release_date"]}')
 
-        print('Retrieved album IDs!')
+        logger.info('Retrieved album IDs!')
         return album_ids
 
 
     def get_tracks(self, album_ids):
         """Get each individual album's track uri's"""
         track_uris = []
-        headers = self.set_request_headers()
 
         for id in album_ids:
             uri = f'https://api.spotify.com/v1/albums/{id}/tracks'
-            response = requests.get(uri, headers=headers)
+            response = requests.get(uri, headers=self.set_request_headers())
 
             if response.status_code == 401:  # bad or expired token
                 headers = self.set_request_headers()
@@ -159,7 +157,7 @@ class SpotifyClient:
             for track in content['items']:
                 track_uris.append(track['uri'])
 
-        print('Retrieved tracks!')
+        logger.info('Retrieved tracks!')
         return track_uris
 
 
@@ -167,16 +165,20 @@ class SpotifyClient:
         """Create a new playlist in user's account"""
         current_date = (date.today()).strftime('%m-%d-%Y')
         playlist_name = f'New Monthly Releases - {current_date}'
-
+        
         uri = f'https://api.spotify.com/v1/users/{user_id}/playlists'
         payload = {'name': playlist_name}
         response = requests.post(uri, headers=self.set_request_headers(), data=json.dumps(payload))
         content = response.json()
 
+        if response.status_code == 401:  # bad or expired token
+            headers = self.set_request_headers()
+            response = requests.get(uri, headers=headers)
+
         session['playlist_id'] = content['id']  # store new playlist's id
         session['playlist_url'] = content['external_urls']['spotify']  # store new playlist's url
 
-        print(f'{response.status_code} - Created playlist!')
+        logger.info('Created playlist!')
         return session['playlist_id']
 
 
@@ -198,6 +200,6 @@ class SpotifyClient:
         else:
             hp.add_tracks(self.set_request_headers(), playlist_id, track_uris)
 
-        print('Added tracks to playlist!')
+        logger.info('Added tracks to playlist!')
         hp.shutdown_server(request.environ)
         return session['playlist_url']

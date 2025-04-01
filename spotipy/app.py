@@ -1,8 +1,15 @@
+import logging
 from flask import Flask, redirect, render_template, request
 from spotify_client import SpotifyClient
+from spotipy.errors import AuthenticationError
 from dotenv import load_dotenv
 import helpers as hp
 import os
+import sys
+
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
@@ -33,7 +40,7 @@ def load_page():
     """Back to app after user signs in. User can now create playlist."""
     if request.args.get('error'):
         error_msg = request.args.get('error')
-        raise ValueError(error_msg)
+        raise AuthenticationError(error_msg)
 
     code = request.args.get('code')
     return render_template('loading.html', code=code)
@@ -42,19 +49,23 @@ def load_page():
 @app.route('/create_playlist/<code>')
 def fetch_data(code):
     """Fetch data for new playlist."""
-    client = SpotifyClient(
-        CLIENT_ID,
-        CLIENT_SECRET,
-        REDIRECT_URI
-    )
-    client.request_api_tokens(code)
+    try:
+        client = SpotifyClient(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            REDIRECT_URI
+        )
+        client.request_api_tokens(code)
 
-    artist_ids = client.get_artists()
-    album_ids = client.get_albums(artist_ids)
-    track_uris = client.get_tracks(album_ids)
-    playlist_url = client.add_to_playlist(track_uris)
+        artist_ids = client.get_artists()
+        album_ids = client.get_albums(artist_ids)
+        track_uris = client.get_tracks(album_ids)
+        playlist_url = client.add_to_playlist(track_uris)
 
-    return redirect(playlist_url)
+        return redirect(playlist_url)
+    except AuthenticationError as e:
+        logger.error(f'Authentication failed: {e}')
+        return render_template('index.html')  # return user to homepage if unauthenticated
 
 
 if __name__ == '__main__':
