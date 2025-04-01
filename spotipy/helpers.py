@@ -1,6 +1,9 @@
 import webbrowser
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 # open app locally
 def open_browser():
@@ -8,14 +11,14 @@ def open_browser():
         url = 'http://127.0.0.1:5000/'
         webbrowser.open(url)
     except Exception:
-        print('You need to manually open your browser and navigate to: http://127.0.0.1:5000/')
+        logger.error('You need to manually open your browser and navigate to: http://127.0.0.1:5000/')
 
 # Shut down the flask server
 def shutdown_server(environ):
     if 'werkzeug.server.shutdown' not in environ:
         raise RuntimeError('Not running the development server')
     environ['werkzeug.server.shutdown']()  # call the shutdown function
-    print('Shutting down server...')
+    logger.info('Shutting down server...')
 
 # post request to add tracks to playlist
 def add_tracks(headers, playlist_id, tracks_list):

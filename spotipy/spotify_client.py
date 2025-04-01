@@ -23,7 +23,7 @@ class SpotifyClient:
 
     def request_api_tokens(self, code):
         """Request access and refresh tokens"""
-        if code == None:
+        if code is None:
             raise AuthenticationError('No authorization code found.')
         payload = {
             'grant_type': 'authorization_code',
@@ -76,7 +76,8 @@ class SpotifyClient:
 
     def get_artists(self):
         """Get current user's followed artists"""
-        response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=self.set_request_headers())
+        headers = self.set_request_headers()
+        response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=headers)
         content = response.json()
         artist_ids = []
         artists = content['artists']['items']
@@ -165,7 +166,7 @@ class SpotifyClient:
         """Create a new playlist in user's account"""
         current_date = (date.today()).strftime('%m-%d-%Y')
         playlist_name = f'New Monthly Releases - {current_date}'
-        
+
         uri = f'https://api.spotify.com/v1/users/{user_id}/playlists'
         payload = {'name': playlist_name}
         response = requests.post(uri, headers=self.set_request_headers(), data=json.dumps(payload))
