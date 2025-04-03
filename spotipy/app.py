@@ -1,24 +1,11 @@
-import logging
 from flask import Flask, redirect, render_template, request
 from spotipy.spotify_client import SpotifyClient
+from spotipy.config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, logger
 from spotipy.errors import AuthenticationError
-from dotenv import load_dotenv
 import spotipy.helpers as hp
-import os
-import sys
-
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-load_dotenv()
-CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI')
 
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')
 hp.open_browser()
 
 
@@ -60,7 +47,8 @@ def fetch_data(code):
         artist_ids = client.get_artists()
         album_ids = client.get_albums(artist_ids)
         track_uris = client.get_tracks(album_ids)
-        playlist_url = client.add_to_playlist(track_uris)
+        playlist_id, playlist_url = client.create_playlist()
+        client.add_to_playlist(playlist_id, track_uris)
 
         return redirect(playlist_url)
     except AuthenticationError as e:
