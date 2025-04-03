@@ -8,6 +8,7 @@ import requests
 import json
 import os
 from spotipy.errors import AuthenticationError
+from spotipy.requests import _get, _post
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ class SpotifyClient:
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
+        self.headers = {}
 
     def request_api_tokens(self, code):
         """Request access and refresh tokens"""
@@ -32,12 +34,7 @@ class SpotifyClient:
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
-        response = requests.post('https://accounts.spotify.com/api/token', data=payload)
-
-        if response.status_code != 200:
-            raise AuthenticationError(f'{response.status_code}')
-
-        content = response.json()
+        content = _post('https://accounts.spotify.com/api/token', data=payload)
         self.save_token_to_cache(content.get('access_token'), content.get('refresh_token'), content.get('expires_in'))
         logger.info('Successfully completed auth flow!')
 
@@ -53,16 +50,12 @@ class SpotifyClient:
     def get_token_from_cache(self):
         """Retrieve the token from cache"""
         cached_token = self.CACHE.get_token('access_token')
-
         if not cached_token:
             cached_refresh_token = self.CACHE.get_token('refresh_token')
-
             if not cached_refresh_token:
                 logger.error('No refresh token available. Logging the user out...')
                 raise AuthenticationError('Refresh token missing.')
-
             return self.refresh_tokens(cached_refresh_token)
-
         return cached_token
 
 
@@ -74,15 +67,13 @@ class SpotifyClient:
     def set_request_headers(self):
         """Prep request headers with access token"""
         access_token = self.get_token_from_cache()
-        headers = {'Authorization': f'Bearer {access_token}'}
-        return headers
+        self.headers = {'Authorization': f'Bearer {access_token}'}
+        return self.headers
 
 
     def get_artists(self):
         """Get current user's followed artists"""
-        headers = self.set_request_headers()
-        response = requests.get('https://api.spotify.com/v1/me/following?type=artist', headers=headers)
-        content = response.json()
+        content = _get('https://api.spotify.com/v1/me/following?type=artist', headers=self.headers, reset_headers=self.set_request_headers)
         artist_ids = []
         artists = content['artists']['items']
         for artist in artists:
@@ -91,13 +82,8 @@ class SpotifyClient:
         # While next results page exists, get it and its artist_ids
         while content['artists']['next']:
             next_page_uri = content['artists']['next']
-            response = requests.get(next_page_uri, headers=headers)
+            content = _get(next_page_uri, headers=self.headers, reset_headers=self.set_request_headers)
 
-            if response.status_code == 401:  # bad or expired token
-                headers = self.set_request_headers()
-                response = requests.get(next_page_uri, headers=headers)
-
-            content = response.json()
             for artist in content['artists']['items']:
                 artist_ids.append(artist['id'])
 
@@ -117,13 +103,7 @@ class SpotifyClient:
 
         for id in artist_ids:
             uri = f'https://api.spotify.com/v1/artists/{id}/albums?include_groups=album,single&country=US'
-            response = requests.get(uri, headers=self.set_request_headers())
-
-            if response.status_code == 401:  # bad or expired token
-                headers = self.set_request_headers()
-                response = requests.get(uri, headers=headers)
-
-            content = response.json()
+            content = _get(uri, headers=self.headers, reset_headers=self.set_request_headers)
 
             albums = content['items']
             for album in albums:
@@ -148,16 +128,9 @@ class SpotifyClient:
     def get_tracks(self, album_ids):
         """Get each individual album's track uri's"""
         track_uris = []
-        headers = self.set_request_headers()
         for id in album_ids:
             uri = f'https://api.spotify.com/v1/albums/{id}/tracks'
-            response = requests.get(uri, headers=headers)
-
-            if response.status_code == 401:  # bad or expired token
-                headers = self.set_request_headers()
-                response = requests.get(uri, headers=headers)
-
-            content = response.json()
+            content = _get(uri, headers=self.headers, reset_headers=self.set_request_headers)
 
             for track in content['items']:
                 track_uris.append(track['uri'])
@@ -173,12 +146,7 @@ class SpotifyClient:
 
         uri = f'https://api.spotify.com/v1/users/{user_id}/playlists'
         payload = {'name': playlist_name}
-        response = requests.post(uri, headers=self.set_request_headers(), data=json.dumps(payload))
-        content = response.json()
-
-        if response.status_code == 401:  # bad or expired token
-            headers = self.set_request_headers()
-            response = requests.get(uri, headers=headers)
+        content = _post(uri, headers=self.headers, reset_headers=self.set_request_headers, data=json.dumps(payload))
 
         session['playlist_id'] = content['id']  # store new playlist's id
         session['playlist_url'] = content['external_urls']['spotify']  # store new playlist's url
@@ -191,19 +159,26 @@ class SpotifyClient:
         """Add new music releases to our newly created playlist"""
         playlist_id = self.create_playlist()
         number_of_tracks = len(track_uris)  # Spotify API limit - max 100 tracks per req.
-        headers = self.set_request_headers()
 
         if number_of_tracks > 200:
             three_split = np.array_split(track_uris, 3)
             for lst in three_split:
-                hp.add_tracks(headers, playlist_id, list(lst))
+                self.add_tracks(self.headers, playlist_id, list(lst))
         elif number_of_tracks > 100:
             two_split = np.array_split(track_uris, 2)
             for lst in two_split:
-                hp.add_tracks(headers, playlist_id, list(lst))
+                self.add_tracks(self.headers, playlist_id, list(lst))
         else:
-            hp.add_tracks(headers, playlist_id, track_uris)
+            self.add_tracks(self.headers, playlist_id, track_uris)
 
         logger.info('Added tracks to playlist!')
-        hp.shutdown_server(request.environ)
+        # hp.shutdown_server(request.environ)  # deprecated, will change for another way to shutdown
         return session['playlist_url']
+
+
+    def add_tracks(self, headers, playlist_id, tracks_list):
+        """Add some number of tracks to a playlist"""
+        uri = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
+        headers['Content-Type'] = 'application/json'
+        payload = {'uris': tracks_list}
+        _post(uri, headers=headers, reset_headers=self.set_request_headers, data=json.dumps(payload))
