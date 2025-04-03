@@ -1,8 +1,6 @@
-import logging
 import requests
+from spotipy.config import logger
 # from spotipy.errors import AuthenticationError
-
-logger = logging.getLogger(__name__)
 
 
 def _get(uri, headers, reset_headers=None):

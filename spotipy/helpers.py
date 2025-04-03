@@ -1,7 +1,6 @@
 import webbrowser
-import logging
+from spotipy.config import logger
 
-logger = logging.getLogger(__name__)
 
 # open app locally
 def open_browser():
@@ -12,7 +11,7 @@ def open_browser():
         logger.error(f'An error occurred: {e}')
         logger.info('Try to manually open your browser and navigate to: http://127.0.0.1:5000/')
 
-# shut down the flask server. Note: deprecated in Werkzeug 2.1
+# shut down the flask server. Note: deprecated in Werkzeug 2.1, TO-DO: upgrade and use a different shutdown method
 def shutdown_server(environ):
     if 'werkzeug.server.shutdown' not in environ:
         raise RuntimeError('Not running the development server')

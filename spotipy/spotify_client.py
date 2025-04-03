@@ -1,14 +1,10 @@
 from datetime import datetime, timedelta, date
-import logging
-from flask import session
-from spotipy.cache import TokenCache
 import numpy as np
 import json
-import os
+from spotipy.cache import TokenCache
+from spotipy.config import logger, USER_ID
 from spotipy.errors import AuthenticationError
 from spotipy.requests import _get, _post
-
-logger = logging.getLogger(__name__)
 
 
 class SpotifyClient:
@@ -137,7 +133,7 @@ class SpotifyClient:
         return track_uris
 
 
-    def create_playlist(self, user_id=os.getenv('SPOTIFY_USER_ID')):
+    def create_playlist(self, user_id=USER_ID):
         """Create a new playlist in user's account"""
         current_date = (date.today()).strftime('%m-%d-%Y')
         playlist_name = f'New Monthly Releases - {current_date}'
@@ -146,16 +142,15 @@ class SpotifyClient:
         payload = {'name': playlist_name}
         content = _post(uri, headers=self.headers, reset_headers=self.set_request_headers, data=json.dumps(payload))
 
-        session['playlist_id'] = content['id']  # store new playlist's id
-        session['playlist_url'] = content['external_urls']['spotify']  # store new playlist's url
+        playlist_id = content['id']  # store new playlist's id
+        playlist_url = content['external_urls']['spotify']  # store new playlist's url
 
         logger.info('Created playlist!')
-        return session['playlist_id']
+        return playlist_id, playlist_url
 
 
-    def add_to_playlist(self, track_uris):
+    def add_to_playlist(self, playlist_id, track_uris):
         """Add new music releases to our newly created playlist"""
-        playlist_id = self.create_playlist()
         number_of_tracks = len(track_uris)  # Spotify API limit - max 100 tracks per req.
 
         if number_of_tracks > 200:
@@ -171,7 +166,6 @@ class SpotifyClient:
 
         logger.info('Added tracks to playlist!')
         # hp.shutdown_server(request.environ)  # deprecated, will change for another way to shutdown
-        return session['playlist_url']
 
 
     def add_tracks(self, headers, playlist_id, tracks_list):
