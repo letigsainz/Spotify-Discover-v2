@@ -5,7 +5,7 @@ This flask app is meant to run locally every month and allow the user to discove
 
 It uses the Spotify Web API to access your followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
 
-Note: This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
+**Note**: This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
 
 ## Screenshots
 ![Start Screen](/spotipy/screenshots/start.png)
@@ -15,7 +15,7 @@ Note: This app uses Werkzeug's simple development server, rather than an actual 
 
 ## Getting Started
 
-Make sure you have Python3 installed.
+Make sure you have Python3 installed. This project uses version 3.13.
 
 [Register](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) your application with ``http://127.0.0.1:5000/callback`` as the redirect URI to obtain a client ID and secret.
 
@@ -32,7 +32,7 @@ SPOTIFY_REDIRECT_URI= 'http://127.0.0.1:5000/callback'
 SPOTIFY_USER_ID= '<your_spotify_user_id>'
 SECRET_KEY= '<your_secret_key>'
 ```
-The SECRET_KEY is used by flask to keep data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
+The SECRET_KEY is used by flask to keep session data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
 
 Create a secret key using the following command. Copy the resulting string into the SECRET_KEY variable in your .env file.
 ```
