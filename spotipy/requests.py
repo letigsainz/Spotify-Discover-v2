@@ -10,11 +10,10 @@ def _get(uri, headers, reset_headers=None):
     except requests.HTTPError as e:
         if e.response.status_code == 401:  # bad or expired token
             logger.error('Token error. Retrying request...')
-            response = requests.get(uri, headers=reset_headers())  # add retry logic here ? not necessary
+            response = requests.get(uri, headers=reset_headers())
         else:
             logger.error(f'Authentication Error {e}')
-            # raise AuthenticationError(f'{e.response.status_code}')
-            # kick user back to login
+            # TO-DO: kick user back to login
     return response.json()
 
 def _post(uri, data, reset_headers=None, headers=None):
@@ -26,6 +25,6 @@ def _post(uri, data, reset_headers=None, headers=None):
             logger.error('Token error. Retrying request...')
             response = requests.post(uri, data, headers=reset_headers())
         else:
-            logger.error(f'Authentication Error {e}')  # delete?
-            # raise AuthenticationError(f'{e.response.status_code}')
+            logger.error(f'Authentication Error {e}')
+            # TO-DO: kick user back to login
     return response.json()
