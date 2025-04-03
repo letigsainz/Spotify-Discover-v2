@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta, date
 import logging
-from flask import request, session
+from flask import session
 from spotipy.cache import TokenCache
-import spotipy.helpers as hp
 import numpy as np
-import requests
 import json
 import os
 from spotipy.errors import AuthenticationError
