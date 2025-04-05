@@ -30,6 +30,7 @@ class SpotifyClient:
         }
         content = _post('https://accounts.spotify.com/api/token', data=payload)
         self.save_token_to_cache(content.get('access_token'), content.get('refresh_token'), content.get('expires_in'))
+        self.headers['Authorization'] = f'Bearer {content.get('access_token')}'
         logger.info('Successfully completed auth flow!')
 
         return content
@@ -61,7 +62,7 @@ class SpotifyClient:
     def set_request_headers(self):
         """Prep request headers with access token"""
         access_token = self.get_token_from_cache()
-        self.headers = {'Authorization': f'Bearer {access_token}'}
+        self.headers['Authorization'] = f'Bearer {access_token}'
         return self.headers
 
 

@@ -11,12 +11,17 @@ def _get(uri, headers, reset_headers=None):
         if e.response.status_code == 401:  # bad or expired token
             logger.error('Token error. Retrying request...')
             response = requests.get(uri, headers=reset_headers())
-        else:
+        elif e.response.status_code == 403:
             logger.error(f'Authentication Error {e}')
-            # TO-DO: kick user back to login
+            # TO-DO: kick user back to login (irrecoverable auth error)
+        elif e.response.status_code == 429:
+            # TO-DO: rate limiting, will create a decorator for this instead
+            pass
+    except Exception as e:
+        logger.error(f'An error occurred: {e}')
     return response.json()
 
-def _post(uri, data, reset_headers=None, headers=None):
+def _post(uri, data, headers=None, reset_headers=None):
     try:
         response = requests.post(uri, data, headers)
         response.raise_for_status()
@@ -24,7 +29,12 @@ def _post(uri, data, reset_headers=None, headers=None):
         if e.response.status_code == 401:  # bad or expired token
             logger.error('Token error. Retrying request...')
             response = requests.post(uri, data, headers=reset_headers())
-        else:
+        elif e.response.status_code == 403:
             logger.error(f'Authentication Error {e}')
-            # TO-DO: kick user back to login
+            # TO-DO: kick user back to login (irrecoverable auth error)
+        elif e.response.status_code == 429:
+            # TO-DO: rate limiting, will create a decorator for this instead
+            pass
+    except Exception as e:
+        logger.error(f'An error occurred: {e}')
     return response.json()
