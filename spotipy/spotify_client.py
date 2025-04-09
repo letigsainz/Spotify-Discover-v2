@@ -4,7 +4,7 @@ import json
 from spotipy.cache import TokenCache
 from spotipy.config import logger, USER_ID
 from spotipy.errors import AuthenticationError
-from spotipy.requests import _get, _post
+from spotipy.requests import get, post
 
 
 class SpotifyClient:
@@ -28,7 +28,7 @@ class SpotifyClient:
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
-        content = _post('https://accounts.spotify.com/api/token', data=payload)
+        content = post('https://accounts.spotify.com/api/token', data=payload)
         self.save_token_to_cache(content.get('access_token'), content.get('refresh_token'), content.get('expires_in'))
         self.headers['Authorization'] = f'Bearer {content.get('access_token')}'
         logger.info('Successfully completed auth flow!')
@@ -59,16 +59,9 @@ class SpotifyClient:
         pass
 
 
-    def set_request_headers(self):
-        """Prep request headers with access token"""
-        access_token = self.get_token_from_cache()
-        self.headers['Authorization'] = f'Bearer {access_token}'
-        return self.headers
-
-
     def get_artists(self):
         """Get current user's followed artists"""
-        content = _get('https://api.spotify.com/v1/me/following?type=artist', headers=self.headers, reset_headers=self.set_request_headers)
+        content = get('https://api.spotify.com/v1/me/following?type=artist', headers=self.headers)
         artist_ids = []
         artists = content['artists']['items']
         for artist in artists:
@@ -77,7 +70,7 @@ class SpotifyClient:
         # While next results page exists, get it and its artist_ids
         while content['artists']['next']:
             next_page_uri = content['artists']['next']
-            content = _get(next_page_uri, headers=self.headers, reset_headers=self.set_request_headers)
+            content = get(next_page_uri, headers=self.headers)
 
             for artist in content['artists']['items']:
                 artist_ids.append(artist['id'])
@@ -98,7 +91,7 @@ class SpotifyClient:
 
         for id in artist_ids:
             uri = f'https://api.spotify.com/v1/artists/{id}/albums?include_groups=album,single&country=US'
-            content = _get(uri, headers=self.headers, reset_headers=self.set_request_headers)
+            content = get(uri, headers=self.headers)
 
             albums = content['items']
             for album in albums:
@@ -125,7 +118,7 @@ class SpotifyClient:
         track_uris = []
         for id in album_ids:
             uri = f'https://api.spotify.com/v1/albums/{id}/tracks'
-            content = _get(uri, headers=self.headers, reset_headers=self.set_request_headers)
+            content = get(uri, headers=self.headers)
 
             for track in content['items']:
                 track_uris.append(track['uri'])
@@ -141,7 +134,7 @@ class SpotifyClient:
 
         uri = f'https://api.spotify.com/v1/users/{user_id}/playlists'
         payload = {'name': playlist_name}
-        content = _post(uri, headers=self.headers, reset_headers=self.set_request_headers, data=json.dumps(payload))
+        content = post(uri, headers=self.headers, data=json.dumps(payload))
 
         playlist_id = content['id']  # store new playlist's id
         playlist_url = content['external_urls']['spotify']  # store new playlist's url
@@ -174,4 +167,4 @@ class SpotifyClient:
         uri = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
         headers['Content-Type'] = 'application/json'
         payload = {'uris': tracks_list}
-        _post(uri, headers=headers, reset_headers=self.set_request_headers, data=json.dumps(payload))
+        post(uri, headers=headers, data=json.dumps(payload))

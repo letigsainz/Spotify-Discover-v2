@@ -4,7 +4,6 @@ from spotipy.config import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, logger
 from spotipy.errors import AuthenticationError
 import spotipy.helpers as hp
 
-
 app = Flask(__name__)
 hp.open_browser()
 

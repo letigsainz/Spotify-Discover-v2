@@ -5,3 +5,13 @@ class AuthenticationError(Exception):
 
     def __str__(self):
         return self.message
+
+class SpotifyRateLimitReachedException(Exception):
+    def __init__(self, response):
+        super().__init__()
+        self.response = response
+
+class AuthTokenBadOrExpiredException(Exception):
+    def __init__(self, response):
+        super().__init__()
+        self.response = response
