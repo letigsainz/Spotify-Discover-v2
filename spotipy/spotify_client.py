@@ -28,7 +28,7 @@ class SpotifyClient:
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
-        content = post('https://accounts.spotify.com/api/token', data=payload)
+        content = post('https://accounts.spotify.com/api/token', headers=None, data=payload)
         self.save_token_to_cache(content.get('access_token'), content.get('refresh_token'), content.get('expires_in'))
         self.headers['Authorization'] = f'Bearer {content.get('access_token')}'
         logger.info('Successfully completed auth flow!')

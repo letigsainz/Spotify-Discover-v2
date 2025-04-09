@@ -1,7 +1,3 @@
-# TO-DO
-# eventually move some logic into a decorator --> handle 401's and 429's.
-# not really a priority right now, since this is a locally run program.
-
 from datetime import time
 from functools import wraps
 from spotipy.config import logger
@@ -14,7 +10,7 @@ def rate_limit_handler(exception_to_check, tries=3):
             m_tries = tries
             while m_tries > 1:
                 try:
-                    return func(*args, *kwargs)
+                    return func(*args, **kwargs)
                 except exception_to_check as e:
                     if e.response is None or e.response.status_code != 429:
                         return
@@ -33,15 +29,14 @@ def bad_token_handler(exception_to_check):
         @wraps(func)
         def inner(*args, **kwargs):
             try:
-                return func(*args, *kwargs)
+                return func(*args, **kwargs)
             except exception_to_check as e:
                 if e.response is None or e.response.status_code != 401:
                     return
                 logger.error('Bad or expired token. Refreshing token...')
-                token = get_token_from_cache()
-                if token:
-                    if len(args) > 1 and 'headers' in kwargs:
-                        kwargs['headers'].update({'Authorization': f'Bearer {token}'})
+                # token = get_token_from_cache()
+                token = 'token'  # test
+                kwargs['headers'].update({'Authorization': f'Bearer {token}'})
                 return func(*args, **kwargs)
         return inner
     return retry_decorator
