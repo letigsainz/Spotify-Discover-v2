@@ -1,11 +1,14 @@
 # Spotify Discover (Full Stack version)
 
 ## About The Project
-This flask app is meant to run locally every month and allow the user to discover new music.
+I created this app a few years ago to help keep me up to date with the latest music releases by the artists that I love. It's meant to be run locally every month and allow the user to discover new music.
 
-It uses the Spotify Web API to access your followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
+The app uses the Spotify Web API to access the user's followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
 
-**Note**: This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
+It is currently a modest app with a very simple UI, using Semantic UI for styling. I'll hopefully update to a more robust React app in the future.
+
+> [!IMPORTANT]
+> This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
 
 ## Screenshots
 ![Start Screen](/spotipy/screenshots/start.png)
@@ -32,7 +35,9 @@ SPOTIFY_REDIRECT_URI= 'http://127.0.0.1:5000/callback'
 SPOTIFY_USER_ID= '<your_spotify_user_id>'
 SECRET_KEY= '<your_secret_key>'
 ```
-The SECRET_KEY is used by flask to keep session data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
+The `SPOTIFY_USER_ID` must be the user Id of the user for which you created the app in Spotify's developer portal. You won't be able to create a playlist for another user.
+
+The `SECRET_KEY` is used by flask to keep session data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
 
 Create a secret key using the following command. Copy the resulting string into the SECRET_KEY variable in your .env file.
 ```
