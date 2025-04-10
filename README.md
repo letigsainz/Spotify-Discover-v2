@@ -38,6 +38,16 @@ The `SPOTIFY_USER_ID` must be the user Id of the user for which you created the 
 
 ## How To Run
 
+### Running with Docker
+
+If you have Docker installed on your machine, then execute the following command in your terminal:
+```
+docker compose up
+```
+Once the container has spun up, then open your browser and navigate to http://127.0.0.1:5000.
+
+### Running without Docker
+
 Create a virtual environment within your project directory and activate it (not required, but highly recommended)
 ```
 python3 -m venv venv
@@ -57,6 +67,8 @@ export FLASK_APP=spotipy/app.py
 
 python -m flask run
 ```
+
+### Play by play
 
 The app will ask you to first authenticate with Spotify, and if successful, it will then prompt you to create your new playlist. You can view the progress inside the terminal's output. 
 
