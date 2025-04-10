@@ -1,4 +1,4 @@
-# Spotify Discover (Full Stack version)
+# Spotify Discover
 
 ## About The Project
 I created this app a few years ago to help keep me up to date with the latest music releases by the artists that I love. It's meant to be run locally, every so often, and allow the user to discover new music.
