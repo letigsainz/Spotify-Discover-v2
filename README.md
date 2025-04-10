@@ -5,7 +5,7 @@ I created this app a few years ago to help keep me up to date with the latest mu
 
 The app uses the Spotify Web API to access a user's followed artists, check if they've released any new music, and if so, add the tracks to a brand new playlist.
 
-It is currently a modest app with a very simple UI, using Semantic UI for styling. I'll hopefully update to a more robust React app in the future.
+It is currently a modest app with a very simple UI, using [Semantic UI](https://semantic-ui.com/introduction/getting-started.html) for styling. I'll hopefully update to a more robust React app in the near future.
 
 > [!IMPORTANT]
 > This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
@@ -65,4 +65,4 @@ Once the playlist has been created, you will be redirected to your Spotify libra
 :grin:
 
 > [!NOTE]
-> You will need to manually shut the server down (^C) when the playlist is completed. The Werkzeug shutdown function that was being used to do this automatically has since been deprecated (To-do: add new shutdown).
+> You will need to manually shut down the server (^C) when the playlist is completed. The Werkzeug built-in shutdown function that was being used to do this automatically, has since been deprecated (To-do: add new shutdown).
