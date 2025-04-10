@@ -1,11 +1,14 @@
 # Spotify Discover (Full Stack version)
 
 ## About The Project
-This flask app is meant to run locally every month and allow the user to discover new music.
+I created this app a few years ago to help keep me up to date with the latest music releases by the artists that I love. It's meant to be run locally, every so often, and allow the user to discover new music.
 
-It uses the Spotify Web API to access your followed artists, check if they've released any new music, and if so, add the tracks to a new playlist for that month.
+The app uses the Spotify Web API to access a user's followed artists, check if they've released any new music, and if so, add the tracks to a brand new playlist.
 
-Note: This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
+It is currently a modest app with a very simple UI, using [Semantic UI](https://semantic-ui.com/introduction/getting-started.html) for styling. I'll hopefully update to a more robust React app in the near future.
+
+> [!IMPORTANT]
+> This app uses Werkzeug's simple development server, rather than an actual web server, so it is not appropriate for production use. 
 
 ## Screenshots
 ![Start Screen](/spotipy/screenshots/start.png)
@@ -15,7 +18,7 @@ Note: This app uses Werkzeug's simple development server, rather than an actual 
 
 ## Getting Started
 
-Make sure you have Python3 installed.
+Make sure you have Python3 installed. This project uses version 3.13.
 
 [Register](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) your application with ``http://127.0.0.1:5000/callback`` as the redirect URI to obtain a client ID and secret.
 
@@ -30,16 +33,8 @@ SPOTIFY_CLIENT_ID= '<your_client_id>'
 SPOTIFY_CLIENT_SECRET= '<your_client_secret>'
 SPOTIFY_REDIRECT_URI= 'http://127.0.0.1:5000/callback'
 SPOTIFY_USER_ID= '<your_spotify_user_id>'
-SECRET_KEY= '<your_secret_key>'
 ```
-The SECRET_KEY is used by flask to keep data safe (i.e. encrypted). You must set the secret key in order to use session in flask, which this project uses.
-
-Create a secret key using the following command. Copy the resulting string into the SECRET_KEY variable in your .env file.
-```
-$ python -c 'import os; print(os.urandom(16))'
-
-b'_5#y2L"F4Q8z\n\xec]/'
-```
+The `SPOTIFY_USER_ID` must be the user Id of the user for which you created the app in Spotify's developer portal. You won't be able to create a playlist for another user.
 
 ## How To Run
 
@@ -63,14 +58,11 @@ export FLASK_APP=spotipy/app.py
 python -m flask run
 ```
 
-## Notes
+The app will ask you to first authenticate with Spotify, and if successful, it will then prompt you to create your new playlist. You can view the progress inside the terminal's output. 
 
-Why would you want to build URLs using the URL reversing function `url_for()` instead of hard-coding them into your templates?
+Once the playlist has been created, you will be redirected to your Spotify library, and more specifically, to your new playlist, so you can start listening!
 
-1. Reversing is often more descriptive than hard-coding the URLs.
-2. Maintainability -- You can change your URLs in one go instead of needing to remember to manually change hard-coded URLs. 
-3. URL building handles escaping of special characters transparently.
-4. The generated paths are always absolute, avoiding unexpected behavior of relative paths in browsers.
-5. If your application is placed outside the URL root, for example, in /myapplication instead of /, url_for() properly handles that for you.
+:grin:
 
-For example, in `loading.html` we can set the `href="/create_playlist/{{ code }}"` or instead, use `url_for()` like so, `href="{{ url_for('fetch_data', code=code) }}"`.
+> [!NOTE]
+> You will need to manually shut down the server (^C) when the playlist is completed. The Werkzeug built-in shutdown function that was being used to do this automatically, has since been deprecated (To-do: add new shutdown).
